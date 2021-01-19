@@ -22,6 +22,7 @@ const playAgainBtn = document.querySelector(".play-again");
 let questionAmount = 0;
 let equationsArray = [];
 let playerGuessArray = [];
+let bestScoreArray = [];
 
 // Game Page
 let firstNumber = 0;
@@ -35,10 +36,45 @@ let timePlayed = 0;
 let baseTime = 0;
 let penaltyTime = 0;
 let finalTime = 0;
-let finalTimeDisplay = "0.0s";
+let finalTimeDisplay = "0.0";
 
 // Scroll
 let valueY = 0;
+
+function bestScoresToDOM() {
+  bestScores.forEach((bestScore, index) => {
+    const betsScoreEl = bestScore;
+    betsScoreEl.textContent = `${bestScoreArray[index].bestScore}s`;
+  });
+}
+
+function getSavedBestScores() {
+  if (localStorage.getItem("bestScores")) {
+    bestScoreArray = JSON.parse(localStorage.bestScores);
+  } else {
+    bestScoreArray = [
+      { questions: 10, bestScore: finalTimeDisplay },
+      { questions: 25, bestScore: finalTimeDisplay },
+      { questions: 50, bestScore: finalTimeDisplay },
+      { questions: 99, bestScore: finalTimeDisplay },
+    ];
+    localStorage.setItem("bestScores", JSON.stringify(bestScoreArray));
+  }
+  bestScoresToDOM();
+}
+
+function updateBestScore() {
+  bestScoreArray.forEach((score, index) => {
+    if (questionAmount == score.questions) {
+      const savedBestScore = Number(bestScoreArray[index].bestScore);
+      if (savedBestScore === 0 || savedBestScore > finalTime) {
+        bestScoreArray[index].bestScore = finalTimeDisplay;
+      }
+    }
+  });
+  bestScoresToDOM();
+  localStorage.setItem("bestScores", JSON.stringify(bestScoreArray));
+}
 
 function playAgain() {
   gamePage.addEventListener("click".startTimer);
@@ -63,6 +99,7 @@ function scoresToDOM() {
   baseTimeEl.textContent = `Base Time: ${baseTime}s`;
   penaltyTimeEl.textContent = `Penalty: +${penaltyTime}s`;
   finalTimeEl.textContent = `${finalTimeDisplay}s`;
+  updateBestScore();
   itemContainer.scrollTo({ top: 0, behavior: "instant" });
   showScorePage();
 }
@@ -182,7 +219,7 @@ function showCountdown() {
   splashPage.hidden = true;
   countdownStart();
   populateGamePage();
-  setTimeout(showGamePage, 400);
+  setTimeout(showGamePage, 4000);
 }
 
 function getRadioValue() {
@@ -208,3 +245,5 @@ startForm.addEventListener("click", () => {
 
 startForm.addEventListener("submit", selectQuestionAmount);
 gamePage.addEventListener("click", startTimer);
+
+getSavedBestScores();
